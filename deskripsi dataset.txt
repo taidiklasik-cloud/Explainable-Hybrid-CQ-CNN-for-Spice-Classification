@@ -1,0 +1,17 @@
+jahe
+kunyit
+Kayu Manis
+Cengkeh
+Bawang Putih
+
+sumber :
+
+https://universe.roboflow.com/skripsi-rempah-esphw/augmentasi-validation/dataset/1
+
+
+
+dataset 
+
+201  per kelas : kaggle
+
+799 lagi per kelas

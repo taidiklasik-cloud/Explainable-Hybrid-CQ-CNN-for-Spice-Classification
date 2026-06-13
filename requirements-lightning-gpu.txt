@@ -1,0 +1,4 @@
+pennylane
+pennylane-lightning
+custatevec-cu12
+pennylane-lightning-gpu

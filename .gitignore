@@ -1,0 +1,79 @@
+# Local environment and credentials
+.env
+.env.*
+!.env.example
+.rclone/
+rclone.conf
+*.pem
+*.key
+*.p12
+*.pfx
+*.crt
+tskey-auth-*.txt
+
+# Python environments and caches
+.conda/
+.venv/
+venv/
+env/
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# IDE and OS noise
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+
+# Logs and local databases
+*.log
+debug.log
+*.db
+*.sqlite
+*.sqlite3
+
+# Dataset and private source uploads
+dataset 10 kelas/
+dataset 3 kelas/
+dataset_cleaned_preprocessed/
+archive/
+00_source_uploads/
+*.zip
+
+# Generated experiment outputs
+outputs/**
+!outputs/
+!outputs/README.md
+!outputs/*/
+!outputs/*/README.md
+curriculum_outputs/
+architecture_worker_artifacts/
+scratch/
+
+# Model checkpoints and generated analysis artifacts
+*.pt
+*.pth
+*.ckpt
+*.pkl
+*.joblib
+*.npy
+*.npz
+*.csv
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.svg
+*.pdf
+*.docx
+
+# Allow source-control friendly docs and config examples
+!requirements*.txt
+!deskripsi dataset.txt
+!DIRECTORY_MAP.txt
+!**/README.md
