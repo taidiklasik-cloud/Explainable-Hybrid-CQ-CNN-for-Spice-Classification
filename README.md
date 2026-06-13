@@ -1,99 +1,125 @@
-# Indonesian Spice Image Classification with Classical CNN and Hybrid QCQ-CNN
+# Explainable Hybrid CQ-CNN for Indonesian Spice Classification
 
-Repositori ini berisi pipeline skripsi untuk klasifikasi citra rempah Indonesia
-dengan dua model pembanding:
+This repository contains an undergraduate thesis pipeline for Indonesian spice
+image classification using two controlled comparison models:
 
-1. Classical Fully Spatial CNN sebagai baseline klasik.
-2. Hybrid QCQ-CNN sebagai varian quantum-classical terkontrol.
+1. Classical Fully Spatial CNN as the classical baseline.
+2. Hybrid CQ-CNN as a quantum-classical classifier variant.
 
-Tujuan riset ini bukan membuktikan "quantum advantage". Model hybrid
-ditempatkan sebagai varian CNN-QNN yang diuji secara apple-to-apple terhadap
-baseline klasik dengan backbone, input, dan jumlah kelas yang sama.
+The project does not claim quantum advantage. The hybrid model is treated as a
+controlled CNN-QNN variant and is compared with the classical baseline under the
+same input shape, dataset protocol, and evaluation scheme.
 
-## Ruang Lingkup Riset
+## Research Scope
 
-- Dataset: citra rempah Indonesia 10 kelas.
-- Input model: citra grayscale berukuran `[B, 1, 128, 128]`.
-- Evaluasi: accuracy, macro-F1, balanced accuracy, confusion matrix,
-  per-class precision, recall, dan F1.
-- Prinsip utama: reproducible training, checkpointing, dan pemisahan jelas
-  antara orchestration metadata, Optuna study, checkpoint fisik, dan output EDA.
+- Dataset domain: Indonesian spice images with 10 classes.
+- Input shape: grayscale images with shape `[B, 1, 128, 128]`.
+- Evaluation metrics: accuracy, macro-F1, balanced accuracy, confusion matrix,
+  and per-class precision, recall, and F1.
+- Engineering focus: reproducible training, checkpointing, worker-based
+  execution, and strict separation between orchestration metadata, Optuna trial
+  storage, physical checkpoints, and local EDA outputs.
 
-## Fitur yang Sudah Dibangun
+## Implemented Features
 
-- Pipeline EDA bertahap untuk profiling dataset, ekstraksi fitur citra,
-  audit outlier, dan justifikasi fitur.
-- Desain curriculum learning Stage 1 sampai Stage 5, termasuk holdout awal,
-  5-fold CV, HPO Stage 3-4, dan evaluasi final Stage 5.
-- Arsitektur Classical Fully Spatial CNN dengan shared CNN backbone,
-  BlurPool, GroupNorm, CBAM attention, bottleneck spasial, dan head spasial.
-- Arsitektur Hybrid QCQ-CNN dengan shared CNN backbone, spatial collapse,
-  amplitude encoding, StronglyEntanglingLayers, Pauli-Z expectation readout,
-  dan linear classifier 10 kelas.
-- Integrasi Optuna PostgreSQL untuk study, trial, sampled hyperparameters,
-  objective value, dan best trial.
-- Orchestration PostgreSQL untuk stage, task, worker, heartbeat, checkpoint
-  metadata, resume, dan stale-task hijacking.
-- Worker runtime dengan polling stage signal, task claim, heartbeat,
-  checkpoint-before-tell order, dan `study.tell()` setelah hasil training siap.
-- Checkpoint helper untuk `latest.pt` lokal per worker, interval/best/final
-  checkpoint, SHA-256, ukuran file, dan metadata resume.
-- Script preflight, smoke test, dan dokumen setup untuk validasi lingkungan.
-- Struktur `outputs/` untuk CSV, JSON, plot, executed notebook, dan artifact
-  eksperimen lokal tanpa memasukkannya ke database.
+- Multi-stage EDA pipeline for dataset profiling, image-feature extraction,
+  outlier auditing, and feature-level analysis.
+- Curriculum learning design for Stage 1 to Stage 5, including early holdout
+  splits, 5-fold cross-validation, Stage 3-4 hyperparameter optimization, and
+  final Stage 5 evaluation.
+- Classical Fully Spatial CNN architecture with a shared CNN backbone,
+  BlurPool, GroupNorm, CBAM attention, spatial bottleneck, and spatial
+  classification head.
+- Hybrid CQ-CNN architecture with the same shared CNN backbone, spatial
+  collapse, amplitude encoding, StronglyEntanglingLayers, Pauli-Z expectation
+  readout, and a 10-class linear classifier.
+- Optuna PostgreSQL integration for studies, trials, sampled hyperparameters,
+  objective values, and best-trial metadata.
+- PostgreSQL orchestration layer for stages, tasks, workers, heartbeat records,
+  checkpoint metadata, resume handling, and stale-task hijacking.
+- Worker runtime with stage-signal polling, task claiming, heartbeat updates,
+  checkpoint-before-tell ordering, and `study.tell()` after training results
+  are ready.
+- Checkpoint helpers for worker-local `latest.pt`, interval/best/final
+  checkpoints, SHA-256 hashes, file sizes, and resume metadata.
+- Preflight, smoke-test, and worker-probe scripts for environment validation.
+- Local `outputs/` structure for CSV, JSON, plots, executed notebooks, and
+  experiment artifacts without storing them in database tables.
 
-## Pemisahan Penyimpanan
+## Storage Separation
 
-| Komponen | Peran | Status publikasi |
+| Component | Role | Publication policy |
 | --- | --- | --- |
-| Orchestration PostgreSQL | Stage, task, worker, heartbeat, checkpoint metadata | hanya DSN di `.env`, tidak dipublikasi |
-| Optuna PostgreSQL | Study, trial, hyperparameter, objective, best trial | hanya DSN di `.env`, tidak dipublikasi |
-| Checkpoint `.pt` | Bobot model dan state training | file fisik tidak masuk Git |
-| `outputs/` | CSV, JSON, plot, notebook tereksekusi | lokal, tidak masuk Git kecuali README |
-| Dataset | Citra mentah/olah | tidak masuk Git |
+| Orchestration PostgreSQL | Stage, task, worker, heartbeat, checkpoint metadata | DSN stays in `.env`; not committed |
+| Optuna PostgreSQL | Study, trial, hyperparameter, objective value, best trial | DSN stays in `.env`; not committed |
+| Checkpoint `.pt` files | Model weights and training state | physical files are not committed |
+| `outputs/` | CSV, JSON, plots, executed notebooks | local only, except README placeholders |
+| Dataset | Raw and processed spice images | not committed |
 
-Implementasi checkpoint yang ada saat ini menyediakan backend rclone/Google
-Drive. Jika deployment akhir memakai Supabase Storage, simpan credential di
-`.env` atau secret manager dan tetap pertahankan prinsip yang sama: PostgreSQL
-hanya menyimpan metadata, sedangkan file `.pt` berada di object storage.
+The current checkpoint helper implementation supports a Google Drive-compatible
+rclone backend. If the final deployment uses Supabase Storage, credentials must
+remain in `.env` or a secret manager, and the same rule still applies:
+PostgreSQL stores metadata only, while physical `.pt` files live in object
+storage.
 
-## Struktur Direktori Utama
+## Main Directory Structure
 
 ```text
-01_eda_pipeline/              Notebook dan output EDA lokal
-02_curriculum_pipeline/       Curriculum split dan audit stage
-03_model_architecture/        Definisi arsitektur classical dan hybrid
-04_runtime_final/             Optuna orchestrator, worker, dan DB runtime
-patched_program_files/        Modul Python yang dipakai notebook/runtime
-notebooks/                    Entry point orchestrator dan worker
-sql/                          Schema, function, seed, dan readiness checks
-docs/                         Dokumentasi setup dan perhitungan eksperimen
-tests/                        Smoke test, integrity test, dan worker probes
-outputs/                      Output lokal, tidak dipublikasi
+01_eda_pipeline/              EDA notebooks and local EDA workflow
+02_curriculum_pipeline/       Curriculum split and stage-audit workflow
+03_model_architecture/        Classical CNN and Hybrid CQ-CNN definitions
+04_runtime_final/             Optuna orchestrator, worker, and DB runtime
+patched_program_files/        Python modules used by notebooks/runtime
+notebooks/                    Orchestrator and worker entry points
+sql/                          Schema, functions, seed data, readiness checks
+docs/                         Setup and experiment-planning documentation
+tests/                        Smoke tests, integrity tests, worker probes
+outputs/                      Local generated outputs, not published
 ```
 
-## Menjalankan Pipeline
+## Running the Pipeline
 
-1. Buat environment Python dari `requirements.txt`.
-2. Salin `.env.example` menjadi `.env`, lalu isi nilai private secara lokal.
-3. Jalankan SQL sesuai `sql/README.md`.
-4. Ikuti urutan lengkap pada `RUN_ORDER_END_TO_END.md`.
-5. Untuk detail alur dari EDA sampai worker, baca
-   `WORKFLOW_DETAIL_FROM_EDA_TO_WORKER.md`.
-6. Untuk publikasi GitHub dan privasi, baca
-   `docs/GITHUB_PUBLICATION_GUIDE.md`.
+1. Create a Python environment from `requirements.txt`.
+2. Copy `.env.example` to `.env`, then fill in local/private values.
+3. Run the SQL files according to `sql/README.md`.
+4. Follow the full execution order in `RUN_ORDER_END_TO_END.md`.
+5. Read `WORKFLOW_DETAIL_FROM_EDA_TO_WORKER.md` for the EDA-to-worker flow.
+6. Read `docs/GITHUB_PUBLICATION_GUIDE.md` before publishing or pushing
+   repository changes.
 
-## Catatan Klaim Ilmiah
+## Public Test Commands
 
-- Novelty utama: desain komparasi terkontrol antara baseline CNN spasial dan
-  varian Hybrid QCQ-CNN untuk klasifikasi citra rempah.
-- Novelty aplikatif: pipeline klasifikasi citra rempah Indonesia dengan EDA,
-  curriculum learning, dan evaluasi multi-metrik.
-- Engineering contribution: orchestration berbasis PostgreSQL, Optuna RDB
-  storage, worker execution, heartbeat, checkpoint metadata, dan recovery.
-- Future work: validasi statistik lintas seed, perbandingan backend quantum,
-  integrasi storage final, dan perluasan XAI pada checkpoint terbaik.
+Run the smoke-test orchestrator:
 
-Semua klaim performa harus diturunkan dari hasil eksperimen yang sudah
-direproduksi. Repositori ini tidak mengklaim quantum advantage tanpa bukti
-empiris dan analisis statistik yang memadai.
+```powershell
+python tests/run_all_smoke_tests.py
+```
+
+Run the worker environment probe:
+
+```powershell
+python tests/worker_smoke_estimate.py --model hybrid --stage-from 3 --stage-to 5
+```
+
+Some tests require local PostgreSQL, Optuna PostgreSQL, dataset manifests, and
+rclone-compatible checkpoint configuration. Credential values must stay outside
+Git.
+
+## Research Contribution Framing
+
+- Core novelty: a controlled comparison design between a fully spatial
+  classical CNN baseline and a Hybrid CQ-CNN variant for Indonesian spice image
+  classification.
+- Applied novelty: an Indonesian spice image-classification pipeline combining
+  EDA, curriculum learning, explainability preparation, and multi-metric
+  evaluation.
+- Engineering contribution: PostgreSQL-based orchestration, Optuna RDB storage,
+  worker execution, heartbeat monitoring, checkpoint metadata, and recovery
+  support.
+- Future work: statistical validation across seeds, additional quantum-backend
+  comparison, final object-storage integration, and XAI analysis on selected
+  best checkpoints.
+
+All performance claims must be derived from reproduced experiments. This
+repository does not claim quantum advantage without sufficient empirical and
+statistical evidence.
